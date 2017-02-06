@@ -498,6 +498,7 @@ fi
 #   - the OCSP response has been verified against the chain or 
 #       the --VAfile
 
+echo  $HAPROXY_ADMIN_SOCKET
 if [ $DEBUG -eq 0 ]; then
     # update .ocsp and .issuer files
 
@@ -518,16 +519,16 @@ if [ $DEBUG -eq 0 ]; then
     if [ $SKIP_UPDATE -eq 0 ]; then
         if [ $ISNEW -eq 1 ]; then
             # no .ocsp file found, maybe it's an initial run
-            Debug "Reloading haproxy."
+            echo  "Reloading haproxy."
 
-            service haproxy reload
+             /usr/local/sbin/haproxy -D -f /etc/haproxy.cfg -p /var/run/haproxy.pid -sf $(cat /var/run/haproxy.pid)
 
             if [ $? -ne 0 ]; then
                 Error 5 "can't reload haproxy with 'service haproxy reload'"
             fi
         else
             # update haproxy via local UNIX socket
-            Debug "Updating haproxy."
+			echo "Updating haproxy via socket..."
 
             echo "set ssl ocsp-response `base64 -w 0 $TMP/ocsp.der`" | $SOCAT_BIN stdio $HAPROXY_ADMIN_SOCKET &>>$TMP/log
 
